@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+/* globals.css or your custom CSS file */
+.sidebar {
+  @apply fixed top-0 left-0 w-64 h-full bg-gray-800 text-white;
+}
+
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background-color:#2d3748; 
+}
+
+h1, h2, td, th p {
+  color: #2d3748;
+}
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+
+/* globals.css or your custom CSS file */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 16rem; /* Adjust width as needed */
+  height: 100%;
+  background-color: #2d3748; /* Adjust background color as needed */
+  color: white;
+  overflow-y: auto; /* Add scroll if content exceeds height */
+}
+
+.sidebar h2 {
+  font-size: 1.25rem; /* Adjust font size as needed */
+  padding: 1rem;
+}
+
+.sidebar button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 1rem;
+  border: none;
+  background: none;
+  color: white;
+  cursor: pointer;
+}
+
+.sidebar button:hover {
+  background-color: wheat; /* Adjust hover color as needed */
+}
+
