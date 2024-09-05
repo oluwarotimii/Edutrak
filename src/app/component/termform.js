@@ -56,8 +56,8 @@ const TermForm = ({ termId, sessionId, onClose, termData }) => {
               required
             />
           </div>
-          <button type="submit" className="bg-gray-500 text-white py-2 px-4 rounded">Save</button>
-          <button type="button" onClick={onClose} className="ml-2 py-2 px-4 rounded border border-gray-300">Cancel</button>
+          <button type="submit" className="bg-gray-900 text-white py-2 px-4 rounded">Save</button>
+          <button type="button" onClick={onClose} className="ml-2 py-2 px-4 text-gray-900 rounded border border-gray-300">Cancel</button>
         </form>
       </div>
     </div>

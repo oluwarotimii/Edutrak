@@ -98,7 +98,7 @@ const CalendarPage = () => {
               <h3 className="text-lg text-gray-700 font-semibold">Terms/Semesters</h3>
               {terms.filter(term => term.sessionId === session.id).map(term => (
                 <div key={term.id} className="mt-2 p-2 border border-gray-200 rounded">
-                  <p>{term.name}</p>
+                  <p className='text-gray-900 '>{term.name}</p>
                   <p className='text-gray-700'>Start Date: {new Date(term.startDate.toDate()).toLocaleDateString()}</p>
                   <p className='text-gray-700'>End Date: {new Date(term.endDate.toDate()).toLocaleDateString()}</p>
                   <button
