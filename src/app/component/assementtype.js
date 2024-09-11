@@ -5,9 +5,23 @@ import { doc, setDoc } from 'firebase/firestore';
 
 const AssessmentTypeModal = ({ isOpen, onClose, assessmentType }) => {
   const [formData, setFormData] = useState({
-    name: assessmentType?.name || '',
-    maxScore: assessmentType?.maxScore || 100,
+    name: '',
+    maxScore: 100,
   });
+
+  useEffect(() => {
+    if (assessmentType) {
+      setFormData({
+        name: assessmentType.name || '',
+        maxScore: assessmentType.maxScore || 100,
+      });
+    } else {
+      setFormData({
+        name: '',
+        maxScore: 100,
+      });
+    }
+  }, [assessmentType]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -19,15 +33,23 @@ const AssessmentTypeModal = ({ isOpen, onClose, assessmentType }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const ref = doc(db, 'assessmentTypes', assessmentType?.id || new Date().toISOString());
-    await setDoc(ref, formData);
-    onClose();
+    try {
+      const ref = doc(db, 'assessmentTypes', assessmentType?.id || new Date().toISOString());
+      await setDoc(ref, formData);
+      alert('Assessment type saved successfully!');
+      onClose();
+    } catch (error) {
+      console.error('Error saving assessment type:', error);
+      alert('Failed to save assessment type. Please try again.');
+    }
   };
 
   return isOpen ? (
     <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
       <div className="bg-white p-6 rounded-lg w-1/2">
-        <h2 className="text-xl font-bold mb-4">{assessmentType ? 'Edit Assessment Type' : 'Add Assessment Type'}</h2>
+        <h2 className="text-xl   text-gray-700 font-bold mb-4">
+          {assessmentType ? 'Edit Assessment Type' : 'Add Assessment Type'}
+        </h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-gray-700">Name</label>
@@ -49,6 +71,7 @@ const AssessmentTypeModal = ({ isOpen, onClose, assessmentType }) => {
               onChange={handleChange}
               className="w-full p-2 border border-gray-300 rounded"
               required
+              min="0"
             />
           </div>
           <div className="flex justify-end">

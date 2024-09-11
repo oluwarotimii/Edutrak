@@ -4,7 +4,16 @@ import React from 'react';
 const StudentProfileModal = ({ isOpen, onClose, student }) => {
   if (!isOpen) return null;
 
-  // Ensure student and assessments are defined
+  if (!student) {
+    return (
+      <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
+        <div className="bg-white p-6 rounded-lg w-1/2">
+          <p>Loading student profile...</p>
+        </div>
+      </div>
+    );
+  }
+
   const { name, assessments = [] } = student || {};
 
   return (

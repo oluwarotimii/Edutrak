@@ -1,21 +1,29 @@
 "use client";
 import '../../styles/globals.css';
 import React, { useState } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/app/lib/firebase'; // Update this import path if necessary
 
 const Login = () => {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
 
-    if (email === 'user' && password === 'password') {
-      router.push('/dashboard/school');
-    } else {
-      setError('Invalid username or password');
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push('/dashboard/school'); // Redirect to the dashboard after successful login
+    } catch (error) {
+      setError('Invalid email or password');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -52,7 +60,7 @@ const Login = () => {
             Password
           </label>
           <input
-            className="w-full px-4 py-2 border border-gray-300  text-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
             id="password"
             type="password"
             value={password}
@@ -62,22 +70,21 @@ const Login = () => {
         </div>
         <button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300"
+          className={`w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          disabled={loading}
         >
-          Sign In
+          {loading ? 'Signing In...' : 'Sign In'}
         </button>
 
         <p className="mt-6 text-center text-black"> Don't have an account?{' '}
-        <button
-          onClick={toggleRegister}
-          className="text-blue-900 hover:underline focus:outline-none"
-        >
-          Register
-        </button>
-      </p>
-
+          <button
+            onClick={toggleRegister}
+            className="text-blue-900 hover:underline focus:outline-none"
+          >
+            Register
+          </button>
+        </p>
       </form>
-      
     </div>
   );
 };
