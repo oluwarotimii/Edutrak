@@ -11,6 +11,7 @@ const Sidebar = ({ role }) => {
     { name: 'Overview', path: '/dashboard/school' },
     { name: 'Manage Students', path: '/dashboard/school/students' },
     { name: 'Manage Teachers', path: '/dashboard/school/teachers' },
+    { name: 'Manage Class', path: '/dashboard/school/students/classes' },
     { name: 'Academic Calendar', path: '/dashboard/school/calendar' },
     { name: 'Attendance', path: '/dashboard/school/attendance' },
     { name: 'Assessments', path: '/dashboard/school/assessments' },

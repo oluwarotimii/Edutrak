@@ -2,10 +2,14 @@
 import React, { useEffect, useState } from 'react';
 import Sidebar from '@/app/component/Sidebar';
 import { db } from '@/app/lib/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, addDoc, updateDoc } from 'firebase/firestore';
 import { PlusIcon } from '@heroicons/react/24/solid';
+import GradingSystemModal from '@/app/component/gradingmodal';
+import AssessmentTypeModal from '@/app/component/assementtype';
+import TeacherFormModal from '@/app/component/addteacher';
+import StudentModal from '@/app/component/studentmodal';
+import ClassModal from '@/app/component/createclass';
 
-// Reusable Card Component
 const Card = ({ title, onClick }) => {
   return (
     <div 
@@ -25,12 +29,30 @@ const SchoolDashboard = () => {
   const [totalTeachers, setTotalTeachers] = useState(0);
   const [recentAttendance, setRecentAttendance] = useState(0);
   const [upcomingAssessments, setUpcomingAssessments] = useState(0);
+  const [gradingSystem, setGradingSystem] = useState({});
+  const [students, setStudents] = useState([]);
+  const [showGradingSystemModal, setShowGradingSystemModal] = useState(false);
+  const [showAssessmentTypeModal, setShowAssessmentTypeModal] = useState(false);
+  const [isTeacherModalOpen, setIsTeacherModalOpen] = useState(false);
+  const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
+  const [isEditingTeacher, setIsEditingTeacher] = useState(false);
+  const [currentTeacher, setCurrentTeacher] = useState(null);
+  const [currentStudent, setCurrentStudent] = useState(null);
+  const [isEditingStudent, setIsEditingStudent] = useState(false);
+  const [isClassModalOpen, setIsClassModalOpen] = useState(false);
+  const [currentClass, setCurrentClass] = useState(null);
+  const [isEditingClass, setIsEditingClass] = useState(false);
 
   useEffect(() => {
     const fetchStudents = async () => {
       try {
         const studentSnapshot = await getDocs(collection(db, 'students'));
         setTotalStudents(studentSnapshot.size);
+        const studentList = studentSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setStudents(studentList);
       } catch (error) {
         console.error('Error fetching students:', error);
       }
@@ -67,19 +89,104 @@ const SchoolDashboard = () => {
       }
     };
 
+    const fetchGradingSystem = async () => {
+      try {
+        const assessmentSnapshot = await getDocs(collection(db, 'assessmentTypes'));
+        const types = assessmentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setAssessmentTypes(types);
+
+        const gradingRef = doc(db, 'gradingSystems', 'default');
+        const gradingSnapshot = await getDoc(gradingRef);
+        setGradingSystem(gradingSnapshot.exists() ? gradingSnapshot.data() : {});
+      } catch (error) {
+        console.error('Error fetching grading system:', error);
+      }
+    };
+
     fetchStudents();
     fetchTeachers();
     fetchAttendance();
     fetchAssessments();
+    fetchGradingSystem();
   }, []);
 
-  // Define card data in an array
+  const handleAddTeacherClick = () => {
+    setCurrentTeacher(null);
+    setIsTeacherModalOpen(true);
+    setIsEditingTeacher(false);
+  };
+
+  const handleAddStudentClick = () => {
+    setCurrentStudent(null);
+    setIsStudentModalOpen(true);
+    setIsEditingStudent(false);
+  };
+  
+  const handleStudentFormSubmit = async (formData) => {
+    if (isEditingStudent && currentStudent) {
+      const studentDoc = doc(db, 'students', currentStudent.id);
+      await updateDoc(studentDoc, formData);
+    } else {
+      await addDoc(collection(db, 'students'), formData);
+    }
+    setIsStudentModalOpen(false);
+    // Fetch updated student list
+    const studentSnapshot = await getDocs(collection(db, 'students'));
+    const studentList = studentSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    setStudents(studentList);
+    setTotalStudents(studentList.length);
+  };
+  
+
+  const handleOpenGradingSystemModal = () => setShowGradingSystemModal(true);
+  const handleCloseGradingSystemModal = () => setShowGradingSystemModal(false);
+  const handleOpenAssessmentTypeModal = () => setShowAssessmentTypeModal(true);
+  const handleCloseAssessmentTypeModal = () => setShowAssessmentTypeModal(false);
+
+  const handleTeacherFormSubmit = async (formData) => {
+    if (currentTeacher) {
+      const teacherDoc = doc(db, 'teachers', currentTeacher.id);
+      await updateDoc(teacherDoc, formData);
+    } else {
+      await addDoc(collection(db, 'teachers'), formData);
+    }
+    setIsTeacherModalOpen(false);
+    // Fetch the updated list of teachers
+    const teacherSnapshot = await getDocs(collection(db, 'teachers'));
+    setTotalTeachers(teacherSnapshot.size);
+  };
+  const handleAddClassClick = () => {
+    setCurrentClass(null); // Reset class data for new class
+    setIsClassModalOpen(true);
+    setIsEditingClass(false);
+  };
+
+  // Function to handle form submit (add or edit class)
+  const handleClassFormSubmit = async (formData) => {
+    if (isEditingClass && currentClass) {
+      const classDoc = doc(db, 'classes', currentClass.id);
+      await updateDoc(classDoc, formData);
+    } else {
+      await addDoc(collection(db, 'classes'), formData);
+    }
+    setIsClassModalOpen(false);
+    // Fetch updated class list
+    const classSnapshot = await getDocs(collection(db, 'classes'));
+    setClasses(classSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+  };
+
+
+  
+
   const createOptions = [
-    { title: "Create Grade", onClick: () => console.log('Create Grade') },
-    { title: "Create Assessment", onClick: () => console.log('Create Assessment') },
-    { title: "Create Teacher", onClick: () => console.log('Create Teacher') },
-    { title: "Create Student", onClick: () => console.log('Create Student') },
-    { title: "Create Class", onClick: () => console.log('Create Class') }
+    { title: "Create Grade", onClick: handleOpenGradingSystemModal },
+    { title: "Create Assessment", onClick: handleOpenAssessmentTypeModal },
+    { title: "Create Teacher", onClick: handleAddTeacherClick },
+    { title: "Create Student", onClick: handleAddStudentClick },
+    { title: "Create Class", onClick:  handleAddClassClick}
   ];
 
   return (
@@ -116,6 +223,37 @@ const SchoolDashboard = () => {
           ))}
         </div>
       </div>
+
+      <AssessmentTypeModal
+        isOpen={showAssessmentTypeModal}
+        onClose={handleCloseAssessmentTypeModal}
+      />
+      <GradingSystemModal
+        isOpen={showGradingSystemModal}
+        onClose={handleCloseGradingSystemModal}
+      />
+      <TeacherFormModal
+        isOpen={isTeacherModalOpen}
+        onClose={() => setIsTeacherModalOpen(false)}
+        onSubmit={handleTeacherFormSubmit}
+        teacher={currentTeacher}
+        isEditing={isEditingTeacher}
+      />
+      <StudentModal
+        isOpen={isStudentModalOpen}
+        onClose={() => setIsStudentModalOpen(false)}
+        onSubmit={handleStudentFormSubmit}
+        student={currentStudent}
+        isEditing={isEditingStudent}
+      />
+
+<ClassModal
+        isOpen={isClassModalOpen}
+        onClose={() => setIsClassModalOpen(false)}
+        onSubmit={handleClassFormSubmit}
+        classData={currentClass}
+        isEditing={isEditingClass}
+      />
     </div>
   );
 };

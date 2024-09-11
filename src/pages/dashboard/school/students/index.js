@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '@/app/component/Sidebar';
 import { db } from '@/app/lib/firebase';
 import { collection, getDocs, doc, updateDoc, addDoc } from 'firebase/firestore';
+import StudentModal from '@/app/component/studentmodal';
 
 const ManageStudents = () => {
   const [students, setStudents] = useState([]);
@@ -10,13 +11,7 @@ const ManageStudents = () => {
   const [selectedClass, setSelectedClass] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [studentForm, setStudentForm] = useState({
-    id: '',
-    name: '',
-    admissionNumber: '',
-    dateEnrolled: '',
-    class: '',
-  });
+  const [studentForm, setStudentForm] = useState({});
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -65,25 +60,12 @@ const ManageStudents = () => {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const handleSubmit = async (formData) => {
     if (isEditing) {
-      const studentDoc = doc(db, 'students', studentForm.id);
-      await updateDoc(studentDoc, {
-        name: studentForm.name,
-        admissionNumber: studentForm.admissionNumber,
-        dateEnrolled: studentForm.dateEnrolled,
-        class: studentForm.class,
-      });
+      const studentDoc = doc(db, 'students', formData.id);
+      await updateDoc(studentDoc, formData);
     } else {
-      await addDoc(collection(db, 'students'), {
-        name: studentForm.name,
-        admissionNumber: studentForm.admissionNumber,
-        dateEnrolled: studentForm.dateEnrolled,
-        class: studentForm.class,
-     
-      });
+      await addDoc(collection(db, 'students'), formData);
     }
 
     setIsModalOpen(false);
@@ -117,7 +99,7 @@ const ManageStudents = () => {
               value={selectedClass}
               onChange={(e) => setSelectedClass(e.target.value)}
               className="bg-white border text-gray-700 border-gray-300 rounded px-4 py-2"
-            > 
+            >
               <option value="">Select Class</option>
               {classes.map(classItem => (
                 <option key={classItem.id} value={classItem.id}>
@@ -165,177 +147,14 @@ const ManageStudents = () => {
         </div>
 
         {isModalOpen && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-    <div className="bg-white p-8 rounded shadow-lg w-full max-w-2xl"> {/* Made the modal wider */}
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">
-        {isEditing ? 'Edit Student' : 'Add Student'}
-      </h2>
-      <form onSubmit={handleSubmit}>
-        {/* Name Field */}
-        <div className="mb-4">
-          <label className="block text-gray-800 text-sm font-bold mb-2">
-            Name
-          </label>
-          <input
-            type="text"
-            value={studentForm.name}
-            onChange={(e) =>
-              setStudentForm({ ...studentForm, name: e.target.value })
-            }
-            required
-            className="w-full px-3 py-2 border text-gray-700 rounded focus:outline-none focus:border-gray-700"
+          <StudentModal
+            isEditing={isEditing}
+            studentForm={studentForm}
+            classes={classes}
+            onSubmit={handleSubmit}
+            onClose={() => setIsModalOpen(false)}
           />
-        </div>
-
-        {/* Admission Number Field */}
-        <div className="mb-4">
-          <label className="block text-gray-800 text-sm font-bold mb-2">
-            Admission Number
-          </label>
-          <input
-            type="text"
-            value={studentForm.admissionNumber}
-            onChange={(e) =>
-              setStudentForm({
-                ...studentForm,
-                admissionNumber: e.target.value,
-              })
-            }
-            required
-            className="w-full px-3 py-2 border rounded text-gray-700 focus:outline-none focus:border-blue-500"
-          />
-        </div>
-
-        {/* Email Field */}
-        <div className="mb-4">
-          <label className="block text-gray-800 text-sm font-bold mb-2">
-            Email
-          </label>
-          <input
-            type="email"
-            value={studentForm.email}
-            onChange={(e) =>
-              setStudentForm({ ...studentForm, email: e.target.value })
-            }
-            required
-            className="w-full px-3 py-2 border rounded text-gray-700 focus:outline-none focus:border-gray-700"
-          />
-        </div>
-
-        {/* Phone Number Field */}
-        <div className="mb-4">
-          <label className="block text-gray-800 text-sm font-bold mb-2">
-            Phone Number
-          </label>
-          <input
-            type="tel"
-            value={studentForm.phone}
-            onChange={(e) =>
-              setStudentForm({ ...studentForm, phone: e.target.value })
-            }
-            required
-            className="w-full px-3 py-2 border rounded text-gray-700 focus:outline-none focus:border-gray-700"
-          />
-        </div>
-
-        {/* Gender Field */}
-        <div className="mb-4">
-          <label className="block text-gray-800 text-sm font-bold mb-2">
-            Gender
-          </label>
-          <select
-            value={studentForm.gender}
-            onChange={(e) =>
-              setStudentForm({ ...studentForm, gender: e.target.value })
-            }
-            required
-            className="w-full px-3 py-2 border rounded text-gray-700 focus:outline-none focus:border-gray-400"
-          >
-            <option value="">Select Gender</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-
-        {/* Guardian Name Field */}
-        <div className="mb-4">
-          <label className="block text-gray-800 text-sm font-bold mb-2">
-            Guardian Name
-          </label>
-          <input
-            type="text"
-            value={studentForm.guardianName}
-            onChange={(e) =>
-              setStudentForm({ ...studentForm, guardianName: e.target.value })
-            }
-            required
-            className="w-full px-3 py-2 border rounded text-gray-700 focus:outline-none focus:border-gray-700"
-          />
-        </div>
-
-        {/* Date Enrolled Field */}
-        <div className="mb-4">
-          <label className="block text-gray-800 text-sm font-bold mb-2">
-            Date Enrolled
-          </label>
-          <input
-            type="date"
-            value={studentForm.dateEnrolled}
-            onChange={(e) =>
-              setStudentForm({
-                ...studentForm,
-                dateEnrolled: e.target.value,
-              })
-            }
-            required
-            className="w-full px-3 py-2 border rounded text-gray-700 focus:outline-none focus:border-gray-700"
-          />
-        </div>
-
-        {/* Class Field */}
-        <div className="mb-4">
-          <label className="block text-gray-800 text-sm font-bold mb-2">
-            Class
-          </label>
-          <select
-            value={studentForm.class}
-            onChange={(e) =>
-              setStudentForm({ ...studentForm, class: e.target.value })
-            }
-            required
-            className="w-full px-3 py-2 border rounded text-gray-700 focus:outline-none focus:border-gray-400"
-          >
-            <option value="">Select Class</option>
-            {classes.map(classItem => (
-              <option key={classItem.id} value={classItem.id}>
-                {classItem.className}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Buttons */}
-        <div className="flex justify-end">
-          <button
-            onClick={() => setIsModalOpen(false)}
-            type="button"
-            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700 mr-2"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            {isEditing ? 'Update' : 'Add'} Student
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-)}
-
+        )}
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { db } from '@/app/lib/firebase';
 import { collection, getDocs, addDoc, doc, updateDoc } from 'firebase/firestore';
 import Sidebar from '@/app/component/Sidebar';
+import ClassModal from '@/app/component/createclass';
 
 const ManageClasses = () => {
   const [classes, setClasses] = useState([]);
@@ -14,10 +15,11 @@ const ManageClasses = () => {
     teacher: '',
   });
 
+  // Fetch classes from Firestore when the component mounts
   useEffect(() => {
     const fetchClasses = async () => {
       const classSnapshot = await getDocs(collection(db, 'classes'));
-      const classList = classSnapshot.docs.map(doc => ({
+      const classList = classSnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
@@ -27,6 +29,7 @@ const ManageClasses = () => {
     fetchClasses();
   }, []);
 
+  // Function to handle opening the "Add Class" modal
   const handleAddClass = () => {
     setIsModalOpen(true);
     setIsEditing(false);
@@ -37,6 +40,7 @@ const ManageClasses = () => {
     });
   };
 
+  // Function to handle opening the "Edit Class" modal with pre-filled values
   const handleEditClass = (classItem) => {
     setIsModalOpen(true);
     setIsEditing(true);
@@ -47,26 +51,29 @@ const ManageClasses = () => {
     });
   };
 
+  // Function to handle form submission for adding or editing a class
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (isEditing) {
+      // Update the class if editing
       const classDoc = doc(db, 'classes', classForm.id);
       await updateDoc(classDoc, {
         className: classForm.className,
         teacher: classForm.teacher,
       });
     } else {
+      // Add a new class
       await addDoc(collection(db, 'classes'), {
         className: classForm.className,
         teacher: classForm.teacher,
       });
     }
 
+    // Close the modal and refresh the class list
     setIsModalOpen(false);
-    // Fetch the updated list of classes
     const classSnapshot = await getDocs(collection(db, 'classes'));
-    const classList = classSnapshot.docs.map(doc => ({
+    const classList = classSnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }));
@@ -96,7 +103,7 @@ const ManageClasses = () => {
               </tr>
             </thead>
             <tbody className="text-gray-700">
-              {classes.map(classItem => (
+              {classes.map((classItem) => (
                 <tr key={classItem.id}>
                   <td className="border px-4 py-2">{classItem.className}</td>
                   <td className="border px-4 py-2">{classItem.teacher}</td>
@@ -114,60 +121,15 @@ const ManageClasses = () => {
           </table>
         </div>
 
-        {isModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <div className="bg-white p-8 rounded shadow-lg w-96">
-              <h2 className="text-2xl font-bold mb-4 text-gray-800">
-                {isEditing ? 'Edit Class' : 'Add Class'}
-              </h2>
-              <form onSubmit={handleSubmit}>
-                <div className="mb-4">
-                  <label className="block text-gray-800 text-sm font-bold mb-2">
-                    Class Name
-                  </label>
-                  <input
-                    type="text"
-                    value={classForm.className}
-                    onChange={(e) =>
-                      setClassForm({ ...classForm, className: e.target.value })
-                    }
-                    required
-                    className="w-full px-3 py-2 border text-gray-700 rounded focus:outline-none focus:border-gray-700"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label className="block text-gray-800 text-sm font-bold mb-2">
-                    Class Teacher
-                  </label>
-                  <input
-                    type="text"
-                    value={classForm.teacher}
-                    onChange={(e) =>
-                      setClassForm({ ...classForm, teacher: e.target.value })
-                    }
-                    required
-                    className="w-full px-3 py-2 border text-gray-700 rounded focus:outline-none focus:border-gray-700"
-                  />
-                </div>
-                <div className="flex justify-end">
-                  <button
-                    onClick={() => setIsModalOpen(false)}
-                    type="button"
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700 mr-2"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-gray-700"
-                  >
-                    {isEditing ? 'Update' : 'Add'} Class
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+        {/* ClassModal component */}
+        <ClassModal
+          isOpen={isModalOpen}
+          isEditing={isEditing}
+          classForm={classForm}
+          setClassForm={setClassForm}
+          onSubmit={handleSubmit}
+          onClose={() => setIsModalOpen(false)}
+        />
       </div>
     </div>
   );
